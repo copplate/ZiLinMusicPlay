@@ -12,7 +12,14 @@
     <color name="red_700">#D32F2F</color>
 
 
+    <color name="pink_300">#EF8CA4</color>
+
+
     <color name="deep_gray">#535252</color>
+
+
+    <color name="colorPrimary">@color/purple_200</color>
+    <color name="colorPrimaryVariant">@color/purple_500</color>
 
 
 
