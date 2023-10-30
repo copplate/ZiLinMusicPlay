@@ -15,7 +15,7 @@ import java.util.List;
 
 public class MusicListActivity extends AppCompatActivity {
     private RecyclerView rlvSongList;
-    private List<Song> songs;
+    private ArrayList<Song> songs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +42,8 @@ public class MusicListActivity extends AppCompatActivity {
             @Override
             public void click(int position) {
                 Intent intent = new Intent(MusicListActivity.this, MusicPlayActivity.class);
+                intent.putExtra("key_song_list", songs);//好家伙，List还不能传输，只能传输ArrayList。
+                intent.putExtra("key_song_index", position);
                 startActivity(intent);
             }
         });
