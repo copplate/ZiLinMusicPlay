@@ -3,6 +3,7 @@ package com.example.zilinmusicplay.service;
 import android.app.Service;
 import android.content.Intent;
 import android.media.MediaPlayer;
+import android.os.Binder;
 import android.os.IBinder;
 
 import androidx.annotation.Nullable;
@@ -31,7 +32,7 @@ public class MyMusicService extends Service {
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
+        return new MyMusicBind(this);
     }
 
     @Override
@@ -43,4 +44,30 @@ public class MyMusicService extends Service {
     public void onDestroy() {
         super.onDestroy();
     }
+
+
+    private void updateMusicList(ArrayList<Song> songs) {
+
+    }
+
+    public class MyMusicBind extends Binder {
+
+        private MyMusicService myMusicService;
+
+        public MyMusicBind(MyMusicService myMusicService) {
+            this.myMusicService = myMusicService;
+        }
+
+        public void startPlay() {
+
+        }
+
+        public void updateMusicList(ArrayList<Song> songs) {
+            myMusicService.updateMusicList(songs);
+        }
+
+    }
+
+
+
 }
