@@ -29,11 +29,16 @@ public class MusicListActivity extends AppCompatActivity {
 
     private void initData() {
         songs = new ArrayList<>();
-        songs.add(new Song("Say so"));
+        songs.add(new Song("Die For You.mp3"));
+        songs.add(new Song("一样的月光-徐家莹.mp3"));
+        songs.add(new Song("初恋.mp3"));
+        songs.add(new Song("安静.mp3"));
+        songs.add(new Song("新地球.mp3"));
+        /*songs.add(new Song("Say so"));
         songs.add(new Song("Streets"));
         songs.add(new Song("慢慢"));
         songs.add(new Song("如果这都不算爱"));
-        songs.add(new Song("向天再借五百年"));
+        songs.add(new Song("向天再借五百年"));*/
     }
 
     private void initSongList() {

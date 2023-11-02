@@ -7,10 +7,12 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.util.Log;
 
 import com.example.zilinmusicplay.bean.Song;
 import com.example.zilinmusicplay.service.MyMusicService;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 public class MusicPlayActivity extends AppCompatActivity {
@@ -24,7 +26,8 @@ public class MusicPlayActivity extends AppCompatActivity {
             //IBinder不但在Activity这边活动，还在Service里活动
             //服务已经建立，传递信息
             MyMusicService.MyMusicBind musicBind = (MyMusicService.MyMusicBind) iBinder;
-            ((MyMusicService.MyMusicBind)iBinder).updateMusicList(songs);
+            musicBind.updateMusicList(songs);
+            musicBind.updateCurrentMusicIndex(curSongIndex);
         }
 
         @Override
@@ -37,7 +40,10 @@ public class MusicPlayActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_music_play);
 
-
+        Intent intent = getIntent();
+        songs = (ArrayList<Song>) intent.getSerializableExtra("key_song_list");
+        curSongIndex = intent.getIntExtra("key_song_index",0);
+        Log.d("tiktok", "onCreate: ----------" + songs);
         startMusicService();
     }
 
