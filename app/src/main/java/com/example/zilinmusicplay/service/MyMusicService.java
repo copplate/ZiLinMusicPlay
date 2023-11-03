@@ -68,6 +68,9 @@ public class MyMusicService extends Service {
         //播放该条歌曲
         AssetManager assetManager = getAssets();
         try {
+            //释放上一个音乐的资源
+            mediaPlayer.stop();
+            mediaPlayer.reset();
             //AssetFileDescriptor是文件描述符
             //通过这个文件描述符可以取到数据
             AssetFileDescriptor fileDescriptor = assetManager.openFd(songName);
@@ -81,6 +84,44 @@ public class MyMusicService extends Service {
             e.printStackTrace();
         }
 
+    }
+
+    public boolean isPlaying() {
+        return mediaPlayer.isPlaying();
+    }
+
+    public void pause() {
+        if (!mediaPlayer.isPlaying()) {
+            return;
+        }
+        mediaPlayer.pause();
+    }
+
+    public void play() {
+        if (mediaPlayer.isPlaying()) {
+            return;
+        }
+        mediaPlayer.start();
+    }
+
+    public void previous() {
+        int preIndex = curSongIndex - 1;//curSongIndex - 1不会改变curSongIndex本身，而curSongIndex--会改变
+        if (preIndex < 0) {
+            preIndex = songs.size() - 1;
+        }
+        updateCurrentMusicIndex(preIndex);
+    }
+
+    public void next() {
+        int nextIndex = curSongIndex + 1;//curSongIndex - 1不会改变curSongIndex本身，而curSongIndex--会改变
+        if (nextIndex > songs.size() - 1) {
+            nextIndex = 0;
+        }
+        updateCurrentMusicIndex(nextIndex);
+    }
+
+    public void stop() {
+        mediaPlayer.stop();
     }
 
     public class MyMusicBind extends Binder {
@@ -100,6 +141,30 @@ public class MyMusicService extends Service {
         }
         public void updateCurrentMusicIndex(int index) {
             myMusicService.updateCurrentMusicIndex(index);
+        }
+
+        public boolean isPlaying() {
+            return myMusicService.isPlaying();
+        }
+
+        public void pause() {
+            myMusicService.pause();
+        }
+
+        public void play() {
+            myMusicService.play();
+        }
+
+        public void previous() {
+            myMusicService.previous();
+        }
+
+        public void next() {
+            myMusicService.next();
+        }
+
+        public void stop() {
+            myMusicService.stop();
         }
 
     }
