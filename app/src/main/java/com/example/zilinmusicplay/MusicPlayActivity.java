@@ -44,6 +44,7 @@ public class MusicPlayActivity extends AppCompatActivity {
             mMusicBind = (MyMusicService.MyMusicBind) iBinder;
             mMusicBind.updateMusicList(songs);
             mMusicBind.updateCurrentMusicIndex(curSongIndex);
+            mMusicBind.setPlayMode(currentPlayMode);
             updateUI();
 
         }
@@ -117,6 +118,7 @@ public class MusicPlayActivity extends AppCompatActivity {
             currentPlayMode = PlayModeHelper.changePlayMode(currentPlayMode);
             String strPlayMode = PlayModeHelper.strPlayMode(currentPlayMode);
             binding.tvPlayMode.setText(strPlayMode);
+            mMusicBind.setPlayMode(currentPlayMode);
         });
 
     }

@@ -20,6 +20,7 @@ public class MyMusicService extends Service {
     private MediaPlayer mediaPlayer;
     private ArrayList<Song> songs;
     private int curSongIndex;
+    private int curPlayMode;//当前的播放模式
     @Override
     public void onCreate() {
         super.onCreate();
@@ -30,6 +31,8 @@ public class MyMusicService extends Service {
             @Override
             public void onCompletion(MediaPlayer mediaPlayer) {
                 //整理一下思路，要想实现循环播放的功能，当播放完一首歌曲之后，我们要知道它播放完了，所以要在这里监听
+                next();//本来我还想着在next()和previous()函数里做文章，确实不如这样简洁
+
             }
         });
     }
@@ -150,6 +153,10 @@ public class MyMusicService extends Service {
         mediaPlayer.seekTo(progress);
     }
 
+    public void setPlayMode(int mode) {
+        this.curPlayMode = mode;
+    }
+
     public class MyMusicBind extends Binder {
 
         private MyMusicService myMusicService;
@@ -207,6 +214,9 @@ public class MyMusicService extends Service {
             myMusicService.seekTo(progress);
         }
 
+        public void setPlayMode(int mode) {
+            myMusicService.setPlayMode(mode);
+        }
 
     }
 
