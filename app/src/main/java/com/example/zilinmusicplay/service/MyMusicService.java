@@ -11,9 +11,12 @@ import android.os.IBinder;
 import androidx.annotation.Nullable;
 
 import com.example.zilinmusicplay.bean.Song;
+import com.example.zilinmusicplay.listener.MyPlayerListener;
+import com.example.zilinmusicplay.util.PlayModeHelper;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Random;
 
 public class MyMusicService extends Service {
 
@@ -21,6 +24,9 @@ public class MyMusicService extends Service {
     private ArrayList<Song> songs;
     private int curSongIndex;
     private int curPlayMode;//当前的播放模式
+    private MyPlayerListener myPlayerListener;
+
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -115,21 +121,49 @@ public class MyMusicService extends Service {
     }
 
     public int previous() {
-        int preIndex = curSongIndex - 1;//curSongIndex - 1不会改变curSongIndex本身，而curSongIndex--会改变
-        if (preIndex < 0) {
-            preIndex = songs.size() - 1;
+        if (curPlayMode == PlayModeHelper.PLAY_MODE_CIRCLE) {
+            updateCurrentMusicIndex(curSongIndex);
+//            myPlayerListener.onPre(curSongIndex, songs.get(curSongIndex));
+            return curSongIndex;
+        } else if (curPlayMode == PlayModeHelper.PLAY_MODE_RANDOM) {
+            int nextRandomIndex = getNextRandomIndex();
+            updateCurrentMusicIndex(nextRandomIndex);
+            myPlayerListener.onNext(nextRandomIndex, songs.get(curSongIndex));
+            return nextRandomIndex;
+        } else{
+            int preIndex = curSongIndex - 1;//curSongIndex - 1不会改变curSongIndex本身，而curSongIndex--会改变
+            if (preIndex < 0) {
+                preIndex = songs.size() - 1;
+            }
+            updateCurrentMusicIndex(preIndex);
+//            myPlayerListener.onPre(preIndex, songs.get(preIndex));
+            return preIndex;
         }
-        updateCurrentMusicIndex(preIndex);
-        return preIndex;
     }
 
     public int next() {
-        int nextIndex = curSongIndex + 1;//curSongIndex - 1不会改变curSongIndex本身，而curSongIndex--会改变
-        if (nextIndex > songs.size() - 1) {
-            nextIndex = 0;
+        if (myPlayerListener == null) {
+            return -1;
         }
-        updateCurrentMusicIndex(nextIndex);
-        return nextIndex;
+        if (curPlayMode == PlayModeHelper.PLAY_MODE_CIRCLE) {
+            updateCurrentMusicIndex(curSongIndex);
+            myPlayerListener.onNext(curSongIndex, songs.get(curSongIndex));
+            return curSongIndex;
+        } else if (curPlayMode == PlayModeHelper.PLAY_MODE_RANDOM) {
+            int nextRandomIndex = getNextRandomIndex();
+            updateCurrentMusicIndex(nextRandomIndex);
+            myPlayerListener.onNext(nextRandomIndex, songs.get(curSongIndex));
+            return nextRandomIndex;
+        } else {
+            int nextIndex = curSongIndex + 1;//curSongIndex - 1不会改变curSongIndex本身，而curSongIndex--会改变
+            if (nextIndex > songs.size() - 1) {
+                nextIndex = 0;
+            }
+            updateCurrentMusicIndex(nextIndex);
+            myPlayerListener.onNext(nextIndex, songs.get(nextIndex));
+            return nextIndex;
+        }
+
     }
 
     public void stop() {
@@ -155,6 +189,16 @@ public class MyMusicService extends Service {
 
     public void setPlayMode(int mode) {
         this.curPlayMode = mode;
+    }
+
+    public void setMyPlayerListener(MyPlayerListener myPlayerListener) {
+        this.myPlayerListener = myPlayerListener;
+    }
+
+    private int getNextRandomIndex() {
+        Random random = new Random();
+        int randomIndex = random.nextInt(songs.size());
+        return randomIndex;
     }
 
     public class MyMusicBind extends Binder {
@@ -216,6 +260,10 @@ public class MyMusicService extends Service {
 
         public void setPlayMode(int mode) {
             myMusicService.setPlayMode(mode);
+        }
+
+        public void setMyPlayerListener(MyPlayerListener myPlayerListener) {
+            myMusicService.setMyPlayerListener(myPlayerListener);
         }
 
     }

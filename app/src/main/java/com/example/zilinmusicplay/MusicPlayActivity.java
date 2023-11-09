@@ -14,6 +14,7 @@ import android.widget.SeekBar;
 
 import com.example.zilinmusicplay.bean.Song;
 import com.example.zilinmusicplay.databinding.ActivityMusicPlayBinding;
+import com.example.zilinmusicplay.listener.MyPlayerListener;
 import com.example.zilinmusicplay.service.MyMusicService;
 import com.example.zilinmusicplay.util.PlayModeHelper;
 import com.example.zilinmusicplay.util.TimeUtil;
@@ -45,6 +46,33 @@ public class MusicPlayActivity extends AppCompatActivity {
             mMusicBind.updateMusicList(songs);
             mMusicBind.updateCurrentMusicIndex(curSongIndex);
             mMusicBind.setPlayMode(currentPlayMode);
+            mMusicBind.setMyPlayerListener(new MyPlayerListener() {
+                @Override
+                public void onComplete(int songIndex, Song song) {
+
+                }
+
+                @Override
+                public void onNext(int songIndex, Song song) {
+                    binding.tvMusicTitle.setText(songIndex + "、" + songs.get(songIndex).getSongName());
+                    curSongIndex = songIndex;
+                }
+
+                @Override
+                public void onPre(int songIndex, Song song) {
+//                    binding.tvMusicTitle.setText(songs.get(songIndex).getSongName());
+                }
+
+                @Override
+                public void onPause(int songIndex, Song song) {
+
+                }
+
+                @Override
+                public void onPlay(int songIndex, Song song) {
+
+                }
+            });
             updateUI();
 
         }
@@ -63,7 +91,7 @@ public class MusicPlayActivity extends AppCompatActivity {
         Intent intent = getIntent();
         songs = (ArrayList<Song>) intent.getSerializableExtra("key_song_list");
         curSongIndex = intent.getIntExtra("key_song_index",0);
-        binding.tvMusicTitle.setText(songs.get(curSongIndex).getSongName());
+        binding.tvMusicTitle.setText(curSongIndex + "、" + songs.get(curSongIndex).getSongName());
         Log.d("tiktok", "onCreate: ----------" + songs);
         startMusicService();
 
@@ -81,12 +109,12 @@ public class MusicPlayActivity extends AppCompatActivity {
 
         binding.ivNext.setOnClickListener(v -> {
             int next = mMusicBind.next();
-            binding.tvMusicTitle.setText(songs.get(next).getSongName());
+            binding.tvMusicTitle.setText(next + "、" + songs.get(next).getSongName());
         });
 
         binding.ivPrevious.setOnClickListener(v -> {
             int previous = mMusicBind.previous();
-            binding.tvMusicTitle.setText(songs.get(previous).getSongName());
+            binding.tvMusicTitle.setText(previous + "、" + songs.get(previous).getSongName());
         });
 
         binding.ivStop.setOnClickListener(v -> {
