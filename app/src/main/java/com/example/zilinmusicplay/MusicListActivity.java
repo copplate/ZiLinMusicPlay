@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.LinearLayout;
 
 import com.example.zilinmusicplay.adapetrrlv.RecySongListApapter;
 import com.example.zilinmusicplay.bean.Song;
@@ -16,6 +17,7 @@ import java.util.List;
 public class MusicListActivity extends AppCompatActivity {
     private RecyclerView rlvSongList;
     private ArrayList<Song> songs;
+//    private LinearLayout llStop;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,16 +31,16 @@ public class MusicListActivity extends AppCompatActivity {
 
     private void initData() {
         songs = new ArrayList<>();
-        songs.add(new Song("不要说话_陈奕迅.mp3"));
+        /*songs.add(new Song("不要说话_陈奕迅.mp3"));
         songs.add(new Song("反方向的钟_周杰伦.mp3"));
         songs.add(new Song("安静_周杰伦.mp3"));
         songs.add(new Song("早开的晚霞_林宥嘉.mp3"));
-        songs.add(new Song("烟花易冷_周杰伦.mp3"));
+        songs.add(new Song("烟花易冷_周杰伦.mp3"));*/
         songs.add(new Song("一样的月光-徐家莹.mp3"));
-        /*songs.add(new Song("Die For You.mp3"));
+        songs.add(new Song("Die For You.mp3"));
         songs.add(new Song("初恋.mp3"));
         songs.add(new Song("安静.mp3"));
-        songs.add(new Song("新地球.mp3"));*/
+        songs.add(new Song("新地球.mp3"));
         /*songs.add(new Song("Say so"));
         songs.add(new Song("Streets"));
         songs.add(new Song("慢慢"));
@@ -63,5 +65,6 @@ public class MusicListActivity extends AppCompatActivity {
 
     private void initView() {
         rlvSongList = findViewById(R.id.rlv_song_list);
+//        llStop = findViewById(R.id.ll_stop);
     }
 }

@@ -36,6 +36,7 @@ public class MusicPlayActivity extends AppCompatActivity {
     private boolean isSeekBarDragging;//进度条是否正在被拖动
     private Timer timer;
     private int currentPlayMode = PlayModeHelper.PLAY_MODE_ORDER;//当前播放模式
+    private Intent intentMusicService;
     private ServiceConnection conn = new ServiceConnection() {//ServiceConnection相当于是Activity和Service的桥梁
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {//当服务链接之后
@@ -123,6 +124,11 @@ public class MusicPlayActivity extends AppCompatActivity {
             binding.seekBarMusic.setProgress(0);
         });
 
+        /*binding.ivCover.setOnClickListener(v -> {
+            Log.d("tiktok", "onCreate: -----binding.ivCover-----");
+            stopService(intentMusicService);
+        });*/
+
         binding.seekBarMusic.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
@@ -161,10 +167,21 @@ public class MusicPlayActivity extends AppCompatActivity {
         }
     }
 
+    /*@Override
+    public void onBackPressed() {
+//        super.onBackPressed();
+        //参数nonRoot的意思是你当前要结束(保护)的这个Activity是不是一个根节点，
+        // 即它是不是一个最底层的Activity。
+        // 如果参数填false的话，它就仅仅会对根节点生效，填true可以对任意节点生效
+        moveTaskToBack(true);
+    }*/
+
     private void startMusicService() {
         //通过bind的形式启动Service
-        Intent intent = new Intent(this, MyMusicService.class);
-        bindService(intent, conn, BIND_AUTO_CREATE);
+        intentMusicService = new Intent(this, MyMusicService.class);
+        bindService(intentMusicService, conn, BIND_AUTO_CREATE);
+        startService(intentMusicService);
+
     }
 
     private void updateUI() {

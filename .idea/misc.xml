@@ -4,6 +4,7 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/AndroidProjects/202310/ZiLinMusicPlay/app/src/main/res/layout/activity_main.xml" value="0.4036458333333333" />
+        <entry key="..\:/AndroidProjects/202310/ZiLinMusicPlay/app/src/main/res/layout/activity_music_list.xml" value="0.24320652173913043" />
         <entry key="..\:/AndroidProjects/202310/ZiLinMusicPlay/app/src/main/res/layout/activity_music_play.xml" value="0.23233695652173914" />
         <entry key="..\:/AndroidProjects/202310/ZiLinMusicPlay/app/src/main/res/layout/item_song_name_list.xml" value="0.23233695652173914" />
         <entry key="..\:/AndroidStudioProjects/202308/ZilinMusicPlay/app/src/main/res/drawable/ic_baseline_music_note_24.xml" value="0.2145" />

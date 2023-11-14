@@ -26,7 +26,7 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
-            android:id="@+id/imageView"
+            android:id="@+id/iv_cover"
             android:layout_width="300dp"
             android:layout_height="200dp"
             android:layout_marginTop="24dp"
@@ -47,7 +47,7 @@
             android:textColor="@color/white"
             android:textSize="16sp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/imageView" />
+            app:layout_constraintTop_toBottomOf="@+id/iv_cover" />
 
         <TextView
             android:id="@+id/tv_dur_time"

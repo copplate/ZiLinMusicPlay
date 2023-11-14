@@ -1,14 +1,18 @@
 package com.example.zilinmusicplay.service;
 
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
+import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
 import android.os.Binder;
 import android.os.IBinder;
 
 import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
 
 import com.example.zilinmusicplay.bean.Song;
 import com.example.zilinmusicplay.listener.MyPlayerListener;
@@ -20,6 +24,8 @@ import java.util.Random;
 
 public class MyMusicService extends Service {
 
+    private static final String CHANNEL_ID = "song_play_channel";
+    public static final int FOREGROUND_ID = 1;
     private MediaPlayer mediaPlayer;
     private ArrayList<Song> songs;
     private int curSongIndex;
@@ -27,12 +33,13 @@ public class MyMusicService extends Service {
     private MyPlayerListener myPlayerListener;
 
 
+
     @Override
     public void onCreate() {
         super.onCreate();
         mediaPlayer = new MediaPlayer();
         songs = new ArrayList<>();
-
+//        stopSelf();
         mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mediaPlayer) {
@@ -41,6 +48,28 @@ public class MyMusicService extends Service {
 
             }
         });
+    }
+
+    private void createNotification() {
+        //Notification Channel的创建
+        //把Channel真正的创建出来
+        //创建一个通知的渠道，需要一个通知的Manager
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Service.NOTIFICATION_SERVICE);
+
+
+        //参数String channelId，是一个渠道的id号。在Android8.0之后，给通知规定了一个概念：通知可以分类别。
+        //我们可以把同一类别的通知归到一个渠道里，因此就有了渠道号这个概念。渠道号其实就是一个标识，我们可以任意来指定。
+        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentText("这是音乐内容")
+                .setContentTitle("这是音乐标题")
+                .setSmallIcon(android.R.drawable.ic_media_play)
+                //如果取消setCustomContentView(remoteView)，不去自定义View，就会用系统自带的
+//                .setCustomContentView(remoteView)
+                //设置内容的Intent，当我们点击通知的时候，可以产生这样一个Intent(startSongPlayPendIntent)，去打开我们的Activity
+//                .setContentIntent(startSongPlayPendIntent)
+                .setLargeIcon(BitmapFactory.decodeResource(getResources(),android.R.drawable.ic_media_play))
+                .build();
+        startForeground(FOREGROUND_ID,notification);
     }
 
     @Override
