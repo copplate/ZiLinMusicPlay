@@ -1,20 +1,29 @@
 package com.example.zilinmusicplay.service;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
 import android.os.Binder;
+import android.os.Build;
 import android.os.IBinder;
+import android.widget.RemoteViews;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
+import com.example.zilinmusicplay.R;
 import com.example.zilinmusicplay.bean.Song;
+import com.example.zilinmusicplay.data.GlobalConstants;
 import com.example.zilinmusicplay.listener.MyPlayerListener;
 import com.example.zilinmusicplay.util.PlayModeHelper;
 
@@ -25,13 +34,41 @@ import java.util.Random;
 public class MyMusicService extends Service {
 
     private static final String CHANNEL_ID = "song_play_channel";
+    //前台Service三部曲 1、定义一个前台ServiceId
     public static final int FOREGROUND_ID = 1;
     private MediaPlayer mediaPlayer;
     private ArrayList<Song> songs;
     private int curSongIndex;
     private int curPlayMode;//当前的播放模式
     private MyPlayerListener myPlayerListener;
-
+    private RemoteViews remoteView;
+    private boolean haveNotification = false;//是否创建了通知.
+    private Notification notification;
+    private NotificationManager notificationManager;
+    private BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            switch (intent.getAction()) {
+                case GlobalConstants.ACTION_CLOSE_MUSIC:
+                    break;
+                case GlobalConstants.ACTION_PRE_MUSIC:
+                    previous();
+                    break;
+                case GlobalConstants.ACTION_NEXT_MUSIC:
+                    next();
+                    break;
+                case GlobalConstants.ACTION_PLAY_PAUSE_MUSIC:
+                    if (isPlaying()) {
+                        pause();
+                    } else {
+                        play();
+                    }
+                    break;
+                case GlobalConstants.ACTION_START_PLAY_ACTIVITY:
+                    break;
+            }
+        }
+    };
 
 
     @Override
@@ -48,32 +85,92 @@ public class MyMusicService extends Service {
 
             }
         });
+
+        //广播注册
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(GlobalConstants.ACTION_CLOSE_MUSIC);
+        intentFilter.addAction(GlobalConstants.ACTION_NEXT_MUSIC);
+        intentFilter.addAction(GlobalConstants.ACTION_PRE_MUSIC);
+        intentFilter.addAction(GlobalConstants.ACTION_PLAY_PAUSE_MUSIC);
+        intentFilter.addAction(GlobalConstants.ACTION_START_PLAY_ACTIVITY);
+        registerReceiver(mReceiver, intentFilter);
     }
 
     private void createNotification() {
+        if (haveNotification) {
+            return;
+        }
         //Notification Channel的创建
         //把Channel真正的创建出来
-        //创建一个通知的渠道，需要一个通知的Manager
-        NotificationManager notificationManager = (NotificationManager) getSystemService(Service.NOTIFICATION_SERVICE);
+        //创建一个通知的渠道，需要一个通知的Manager,这个NotificationManager是一个系统的服务
+        notificationManager = (NotificationManager) getSystemService(Service.NOTIFICATION_SERVICE);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            //参数CHANNEL_ID是我们自己定义的，相当于是唯一标识的一个名字。"音乐播放通知▶"是在手机app里可见的一个名字
+            //NotificationManager.IMPORTANCE_HIGH代表着这种渠道(类别)的通知的重要性
+            NotificationChannel channel =
+                    new NotificationChannel(CHANNEL_ID, "音乐播放通知▶", NotificationManager.IMPORTANCE_HIGH);
+            //使用manager把渠道创建出来
+            notificationManager.createNotificationChannel(channel);
+        }
+        //自定义Notification中的内容View
+        //参数1是包名
+        remoteView = new RemoteViews(getPackageName(), R.layout.notification_music_layout);
+        //点击通知中内容View的子View，发出广播
+
+        //设置通知中的TextView的文字
+        Song song = getCurSong();
+        if (song != null) {
+            remoteView.setTextViewText(R.id.tv_notification_title,songs.get(curSongIndex).getSongName());
+        }
+        //点击通知中内容View的子View,发出广播
+        int flag = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+                ? PendingIntent.FLAG_IMMUTABLE
+                : 0;
+
+        //下一曲
+        Intent nextIntent = new Intent(GlobalConstants.ACTION_NEXT_MUSIC);
+        PendingIntent nextPendIntent = PendingIntent.getBroadcast(this, 0, nextIntent, flag);
+        remoteView.setOnClickPendingIntent(R.id.iv_next,nextPendIntent);
+
+        //上一曲
+        Intent preIntent = new Intent(GlobalConstants.ACTION_PRE_MUSIC);
+        PendingIntent prePendIntent = PendingIntent.getBroadcast(this, 0, preIntent, flag);
+        remoteView.setOnClickPendingIntent(R.id.iv_previous,prePendIntent);
+
+        //暂停、播放
+        Intent playPauseIntent = new Intent(GlobalConstants.ACTION_PLAY_PAUSE_MUSIC);
+        PendingIntent playPausePendIntent = PendingIntent.getBroadcast(this, 0, playPauseIntent, flag);
+        remoteView.setOnClickPendingIntent(R.id.iv_play_pause,playPausePendIntent);
+
+        //关闭音乐(停止音乐服务)
+        Intent closeIntent = new Intent(GlobalConstants.ACTION_CLOSE_MUSIC);
+        PendingIntent closePendIntent = PendingIntent.getBroadcast(this, 0, closeIntent, flag);
+        remoteView.setOnClickPendingIntent(R.id.iv_close,closePendIntent);
 
 
         //参数String channelId，是一个渠道的id号。在Android8.0之后，给通知规定了一个概念：通知可以分类别。
         //我们可以把同一类别的通知归到一个渠道里，因此就有了渠道号这个概念。渠道号其实就是一个标识，我们可以任意来指定。
-        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+        //前台Service三部曲 2、创建通知
+        notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentText("这是音乐内容")
                 .setContentTitle("这是音乐标题")
                 .setSmallIcon(android.R.drawable.ic_media_play)
                 //如果取消setCustomContentView(remoteView)，不去自定义View，就会用系统自带的
-//                .setCustomContentView(remoteView)
+                .setCustomContentView(remoteView)
                 //设置内容的Intent，当我们点击通知的时候，可以产生这样一个Intent(startSongPlayPendIntent)，去打开我们的Activity
 //                .setContentIntent(startSongPlayPendIntent)
                 .setLargeIcon(BitmapFactory.decodeResource(getResources(),android.R.drawable.ic_media_play))
                 .build();
+        //前台Service三部曲 3、联合通知将当前Service启动成前台Service
         startForeground(FOREGROUND_ID,notification);
+        haveNotification = true;
+
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        createNotification();
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -96,6 +193,8 @@ public class MyMusicService extends Service {
             mediaPlayer.release();
             mediaPlayer = null;
         }
+        //解除注册
+        unregisterReceiver(mReceiver);
     }
 
 
@@ -129,6 +228,11 @@ public class MyMusicService extends Service {
             e.printStackTrace();
         }
 
+        //更新通知里的歌曲名
+        remoteView.setTextViewText(R.id.tv_notification_title,songs.get(curSongIndex).getSongName());
+        //然后更新通知
+        notificationManager.notify(FOREGROUND_ID,notification);
+
     }
 
     public boolean isPlaying() {
@@ -139,6 +243,11 @@ public class MyMusicService extends Service {
         if (!mediaPlayer.isPlaying()) {
             return;
         }
+        //设置通知中View的图标
+        notification.contentView.setImageViewResource(R.id.iv_play_pause,android.R.drawable.ic_media_play);
+        //然后更新通知
+        notificationManager.notify(FOREGROUND_ID,notification);
+
         mediaPlayer.pause();
     }
 
@@ -146,6 +255,11 @@ public class MyMusicService extends Service {
         if (mediaPlayer.isPlaying()) {
             return;
         }
+        //设置通知中View的图标
+        notification.contentView.setImageViewResource(R.id.iv_play_pause,android.R.drawable.ic_media_pause);
+        //然后更新通知
+        notificationManager.notify(FOREGROUND_ID,notification);
+
         mediaPlayer.start();
     }
 
@@ -202,6 +316,13 @@ public class MyMusicService extends Service {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public Song getCurSong() {
+        if (curSongIndex < 0 || curSongIndex >= songs.size()) {
+            return null;
+        }
+        return songs.get(curSongIndex);
     }
 
     public int getCurProgress() {
